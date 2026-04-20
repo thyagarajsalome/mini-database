@@ -1,121 +1,94 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
+import React, { useState, useEffect } from 'react';
 
-function App() {
-  const [count, setCount] = useState(0)
+export default function App() {
+  const [materials, setMaterials] = useState([]);
+  const [formData, setFormData] = useState({ id: '', name: '', cost: '' });
+
+  const fetchMaterials = async () => {
+    const res = await fetch('http://localhost:3001/api/materials');
+    const data = await res.json();
+    setMaterials(data);
+  };
+
+  useEffect(() => {
+    fetchMaterials();
+  }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    await fetch('http://localhost:3001/api/materials', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    });
+    
+    setFormData({ id: '', name: '', cost: '' });
+    fetchMaterials(); // Refresh the list
+  };
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
+    <div className="p-8 max-w-2xl mx-auto font-sans">
+      <h1 className="text-2xl font-bold mb-6">Mini C-Database Dashboard</h1>
+      
+      {/* Input Form */}
+      <form onSubmit={handleSubmit} className="flex gap-4 mb-8">
+        <input
+          type="number"
+          placeholder="ID"
+          value={formData.id}
+          onChange={(e) => setFormData({...formData, id: e.target.value})}
+          className="border p-2 rounded w-20"
+          required
+        />
+        <input
+          type="text"
+          placeholder="Material Name"
+          value={formData.name}
+          onChange={(e) => setFormData({...formData, name: e.target.value})}
+          className="border p-2 rounded flex-grow"
+          required
+        />
+        <input
+          type="number"
+          placeholder="Unit Cost"
+          value={formData.cost}
+          onChange={(e) => setFormData({...formData, cost: e.target.value})}
+          className="border p-2 rounded w-32"
+          required
+        />
+        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">
+          Insert
         </button>
-      </section>
+      </form>
 
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      {/* Data Display */}
+      <div className="border rounded shadow-sm">
+        <table className="w-full text-left">
+          <thead className="bg-gray-50 border-b">
+            <tr>
+              <th className="p-3">ID</th>
+              <th className="p-3">Material Name</th>
+              <th className="p-3">Unit Cost (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            {materials.map((item) => (
+              <tr key={item.id} className="border-b">
+                <td className="p-3">{item.id}</td>
+                <td className="p-3 font-medium">{item.name}</td>
+                <td className="p-3">{item.cost}</td>
+              </tr>
+            ))}
+            {materials.length === 0 && (
+              <tr>
+                <td colSpan="3" className="p-3 text-center text-gray-500">
+                  Database is empty. Insert a record!
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
-
-export default App
