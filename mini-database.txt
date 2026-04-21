@@ -1,0 +1,7 @@
+cd backend
+gcc db.c -o db
+
+node server.js
+
+cd ui
+npm run dev
